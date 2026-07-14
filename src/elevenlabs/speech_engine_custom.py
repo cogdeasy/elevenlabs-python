@@ -10,7 +10,9 @@ from .types.base_turn_config import BaseTurnConfig
 from .types.conversation_config_input import ConversationConfigInput
 from .types.privacy_config_input import PrivacyConfigInput
 from .types.speech_engine_config import SpeechEngineConfig
-from .types.speech_engine_conversation_initiation_client_data_config import SpeechEngineConversationInitiationClientDataConfig
+from .types.speech_engine_conversation_initiation_client_data_config import (
+    SpeechEngineConversationInitiationClientDataConfig,
+)
 from .types.tts_conversational_config_input import TtsConversationalConfigInput
 
 OMIT = typing.cast(typing.Any, ...)

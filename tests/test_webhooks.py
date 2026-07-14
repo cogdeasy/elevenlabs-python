@@ -1,13 +1,13 @@
+import hashlib
+import hmac
 import json
 import time
-import hmac
-import hashlib
 from unittest import mock
+
+import pytest
 
 from elevenlabs.client import ElevenLabs
 from elevenlabs.errors import BadRequestError
-
-import pytest
 
 
 def test_construct_event_valid_signature():

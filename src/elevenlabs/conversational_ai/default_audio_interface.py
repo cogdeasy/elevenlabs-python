@@ -1,9 +1,9 @@
-from typing import Callable, Awaitable
+import asyncio
 import queue
 import threading
-import asyncio
+from typing import Awaitable, Callable
 
-from .conversation import AudioInterface, AsyncAudioInterface
+from .conversation import AsyncAudioInterface, AudioInterface
 
 
 class DefaultAudioInterface(AudioInterface):

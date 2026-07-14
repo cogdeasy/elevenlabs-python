@@ -1,7 +1,7 @@
-from elevenlabs.play import play
-from elevenlabs.client import ElevenLabs
+from .utils import DEFAULT_VOICE_FILE, IN_GITHUB
 
-from .utils import IN_GITHUB, DEFAULT_VOICE_FILE
+from elevenlabs.client import ElevenLabs
+from elevenlabs.play import play
 
 
 def test_audio_isolation() -> None:

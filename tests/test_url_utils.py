@@ -1,6 +1,5 @@
 """Tests for the build_ws_url utility."""
 
-import pytest
 
 from elevenlabs.url_utils import build_ws_url
 

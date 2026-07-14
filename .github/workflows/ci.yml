@@ -2,6 +2,40 @@ name: ci
 
 on: [push]
 jobs:
+  lint:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v6
+      - name: Set up python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+      - name: Bootstrap poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python - -y --version 1.8.5
+      - name: Install dependencies
+        run: poetry install
+      # Lint gate covers the hand-maintained paths listed in .fernignore
+      # (plus tests and examples); Fern-generated code is excluded.
+      - name: Ruff lint
+        run: |
+          poetry run ruff check \
+            src/elevenlabs/client.py \
+            src/elevenlabs/conversational_ai/conversation.py \
+            src/elevenlabs/conversational_ai/default_audio_interface.py \
+            src/elevenlabs/realtime_tts.py \
+            src/elevenlabs/play.py \
+            src/elevenlabs/webhooks_custom.py \
+            src/elevenlabs/music_custom.py \
+            src/elevenlabs/speech_to_text_custom.py \
+            src/elevenlabs/url_utils.py \
+            src/elevenlabs/realtime \
+            src/elevenlabs/speech_engine \
+            src/elevenlabs/speech_engine_custom.py \
+            tests \
+            examples
+
   compile:
     runs-on: ubuntu-24.04
     steps:
@@ -10,15 +44,47 @@ jobs:
       - name: Set up python
         uses: actions/setup-python@v6
         with:
-          python-version: 3.8
+          python-version: "3.9"
       - name: Bootstrap poetry
         run: |
-          curl -sSL https://install.python-poetry.org | python - -y --version 1.5.1
+          curl -sSL https://install.python-poetry.org | python - -y --version 1.8.5
       - name: Install dependencies
         run: poetry install
       - name: Compile
         run: poetry run mypy .
+
   test:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v6
+      - name: Set up python
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Bootstrap poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python - -y --version 1.8.5
+      - name: Install dependencies
+        run: |
+          poetry install
+      - name: Verify types
+        run: poetry run python tests/verify_types.py
+      - name: Test
+        run: poetry run pytest . --cov=src/elevenlabs --cov-report=term --cov-report=xml
+        env:
+          ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-${{ matrix.python-version }}
+          path: coverage.xml
+
+  examples:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout repo
@@ -26,22 +92,21 @@ jobs:
       - name: Set up python
         uses: actions/setup-python@v6
         with:
-          python-version: 3.8
+          python-version: "3.13"
       - name: Bootstrap poetry
         run: |
-          curl -sSL https://install.python-poetry.org | python - -y --version 1.5.1
+          curl -sSL https://install.python-poetry.org | python - -y --version 1.8.5
       - name: Install dependencies
         run: |
           poetry install
-      - name: Verify types
-        run: poetry run python tests/verify_types.py
-      - name: Test
-        run: poetry run pytest .
-        env:
-          ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
+          poetry run pip install fastapi uvicorn
+      - name: Compile examples
+        run: poetry run python -m compileall -q examples
+      - name: Import-check examples
+        run: poetry run python examples/check_imports.py
 
   publish:
-    needs: [compile, test]
+    needs: [lint, compile, test, examples]
     if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
     runs-on: ubuntu-24.04
     environment: pypi-publish
@@ -54,10 +119,10 @@ jobs:
       - name: Set up python
         uses: actions/setup-python@v6
         with:
-          python-version: 3.8
+          python-version: "3.9"
       - name: Bootstrap poetry
         run: |
-          curl -sSL https://install.python-poetry.org | python - -y --version 1.5.1
+          curl -sSL https://install.python-poetry.org | python - -y --version 1.8.5
       - name: Install dependencies
         run: poetry install
       - name: Build package

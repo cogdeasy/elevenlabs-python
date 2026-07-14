@@ -1,7 +1,6 @@
 import urllib.parse
 from typing import Any, Sequence, Tuple, Union
 
-
 _WS_SCHEME = {"https": "wss", "http": "ws"}
 
 

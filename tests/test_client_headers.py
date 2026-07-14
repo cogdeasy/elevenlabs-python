@@ -8,7 +8,6 @@ subclass's hand-rolled ``__init__`` did not accept or forward kwargs that
 ``BaseElevenLabs`` supports.
 """
 
-import pytest
 
 from elevenlabs.client import AsyncElevenLabs, ElevenLabs
 

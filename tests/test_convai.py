@@ -1,12 +1,14 @@
-from unittest.mock import MagicMock, patch
-from elevenlabs.conversational_ai.conversation import (
-    Conversation,
-    AudioInterface,
-    ConversationInitiationData,
-    AgentChatResponsePartType,
-)
 import json
 import time
+from unittest.mock import MagicMock, patch
+
+from elevenlabs.conversational_ai.conversation import (
+    AgentChatResponsePartType,
+    AudioInterface,
+    Conversation,
+    ConversationInitiationData,
+)
+
 
 class MockAudioInterface(AudioInterface):
     def start(self, input_callback):
@@ -266,8 +268,8 @@ def test_conversation_wss_url_generation_without_get_environment():
 
 def test_websocket_url_construction_edge_cases():
     """Test WebSocket URL construction edge cases, specifically for trailing slash handling."""
-    from elevenlabs.core.client_wrapper import SyncClientWrapper
     from elevenlabs.conversational_ai.conversation import Conversation
+    from elevenlabs.core.client_wrapper import SyncClientWrapper
     from elevenlabs.realtime_tts import RealtimeTextToSpeechClient
 
     # Test cases with various base URL formats

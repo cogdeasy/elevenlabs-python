@@ -1,7 +1,7 @@
-from elevenlabs.play import play
-from elevenlabs.client import ElevenLabs
-
 from .utils import IN_GITHUB
+
+from elevenlabs.client import ElevenLabs
+from elevenlabs.play import play
 
 
 def test_text_to_sound_effects_convert() -> None:

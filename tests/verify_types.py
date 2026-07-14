@@ -6,9 +6,9 @@ Each type is tested in a separate Python process to avoid import cache issues.
 """
 import subprocess
 import sys
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import Optional
-from concurrent.futures import ThreadPoolExecutor, as_completed
 
 
 def get_class_name_from_file(file_path: Path) -> Optional[str]:

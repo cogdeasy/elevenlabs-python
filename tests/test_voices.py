@@ -1,5 +1,6 @@
-from elevenlabs import Voice, VoiceSettings, ElevenLabs
 from .utils import DEFAULT_VOICE
+
+from elevenlabs import ElevenLabs, Voice, VoiceSettings
 
 
 def test_get_voice():

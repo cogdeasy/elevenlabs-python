@@ -1,8 +1,8 @@
 import os
 import tempfile
-import httpx
+from typing import Generator, Sequence
 
-from typing import Sequence, Generator
+import httpx
 
 IN_GITHUB = "GITHUB_ACTIONS" in os.environ
 
