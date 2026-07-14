@@ -53,12 +53,12 @@ class ExponentialBackoff:
         return self._attempt
 
     def next_delay(self) -> float:
-        """Return the next delay in seconds and advance the attempt counter."""
-        delay = min(self.initial * (self.multiplier**self._attempt), self.maximum)
+        """Return the next delay in seconds, never exceeding ``maximum``, and advance the attempt counter."""
+        delay = self.initial * (self.multiplier**self._attempt)
         self._attempt += 1
         if self.jitter:
             delay *= 1.0 + random.uniform(-self.jitter, self.jitter)
-        return delay
+        return min(delay, self.maximum)
 
     def reset(self) -> None:
         """Reset the attempt counter, e.g. after a successful connection."""

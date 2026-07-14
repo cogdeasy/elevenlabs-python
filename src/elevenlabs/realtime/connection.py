@@ -72,6 +72,7 @@ class RealtimeConnection:
         self._message_task: typing.Optional[asyncio.Task] = None
         self._callback_tasks: typing.Set[asyncio.Task] = set()
         self._event_queues: typing.List["asyncio.Queue[typing.Tuple[str, typing.Any]]"] = []
+        self._close_emitted = False
 
     async def __aenter__(self) -> "RealtimeConnection":
         return self
@@ -151,6 +152,8 @@ class RealtimeConnection:
 
     def _emit(self, event: str, *args) -> None:
         """Emit an event to all registered handlers"""
+        if _event_key(event) == RealtimeEvents.CLOSE.value:
+            self._close_emitted = True
         for queue in list(self._event_queues):
             queue.put_nowait((event, args[0] if args else None))
         if event in self._event_handlers:
@@ -189,6 +192,8 @@ class RealtimeConnection:
             ```
         """
         wanted = {_event_key(e) for e in events} if events is not None else None
+        if self._close_emitted:
+            return
         queue: "asyncio.Queue[typing.Tuple[str, typing.Any]]" = asyncio.Queue()
         self._event_queues.append(queue)
         try:

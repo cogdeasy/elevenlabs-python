@@ -221,3 +221,13 @@ async def test_connect_with_backoff_validates_max_attempts():
             {"model_id": "m", "audio_format": "pcm_16000", "sample_rate": 16000},
             max_attempts=0,
         )
+
+
+async def test_events_iterator_ends_immediately_if_already_closed():
+    connection = _make_connection()
+    connection._emit(RealtimeEvents.CLOSE)
+
+    seen = []
+    async for event, _ in connection.events():
+        seen.append(event)
+    assert seen == []

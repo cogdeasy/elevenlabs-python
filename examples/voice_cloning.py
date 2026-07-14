@@ -8,6 +8,7 @@ Set ELEVENLABS_BASE_URL to point the client at a non-production API
 (used by the CI smoke tier to run against a local mock server).
 """
 
+import contextlib
 import os
 import sys
 
@@ -26,16 +27,13 @@ def main() -> None:
         base_url=os.environ.get("ELEVENLABS_BASE_URL"),
     )
 
-    files = [open(path, "rb") for path in sample_paths]
-    try:
+    with contextlib.ExitStack() as stack:
+        files = [stack.enter_context(open(path, "rb")) for path in sample_paths]
         voice = client.voices.ivc.create(
             name="sdk-example-cloned-voice",
             description="Instant voice clone created by the SDK example",
             files=files,
         )
-    finally:
-        for f in files:
-            f.close()
 
     print(f"Created voice clone: {voice.voice_id}")
     if voice.requires_verification:
