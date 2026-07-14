@@ -130,7 +130,7 @@ class RealtimeConnection:
             print(data["transcript"])
             ```
         """
-        future: "asyncio.Future[typing.Any]" = asyncio.get_event_loop().create_future()
+        future: "asyncio.Future[typing.Any]" = asyncio.get_running_loop().create_future()
 
         def _resolver(*args: typing.Any) -> None:
             if not future.done():
@@ -149,7 +149,7 @@ class RealtimeConnection:
                 try:
                     result = handler(*args)
                     if asyncio.iscoroutine(result):
-                        task = asyncio.get_event_loop().create_task(result)
+                        task = asyncio.get_running_loop().create_task(result)
                         self._callback_tasks.add(task)
                         task.add_done_callback(self._on_callback_task_done)
                 except Exception as e:

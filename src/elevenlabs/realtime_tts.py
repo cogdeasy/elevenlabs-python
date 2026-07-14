@@ -95,7 +95,11 @@ class RealtimeTextToSpeechClient(TextToSpeechClient):
             build_ws_url(
                 self._ws_base_url,
                 ["v1", "text-to-speech", voice_id, "stream-input"],
-                {"model_id": model_id, "output_format": output_format},
+                {
+                    k: v
+                    for k, v in {"model_id": model_id, "output_format": output_format}.items()
+                    if v is not None and v is not OMIT
+                },
             ),
             additional_headers=jsonable_encoder(
                 remove_none_from_dict(
