@@ -1,23 +1,21 @@
-from abc import ABC, abstractmethod
 import asyncio
 import base64
-from concurrent.futures import ThreadPoolExecutor
-from dataclasses import dataclass
-from enum import Enum
 import json
 import logging
 import threading
-from typing import Any, Awaitable, Callable, Dict, List, Literal, Optional, Tuple, Union
 import urllib.parse
+from abc import ABC, abstractmethod
+from concurrent.futures import ThreadPoolExecutor
+from dataclasses import dataclass
+from enum import Enum
+from typing import Any, Awaitable, Callable, Dict, List, Literal, Optional, Tuple, Union
 
 import websockets
-from websockets.exceptions import ConnectionClosedOK
-from websockets.sync.client import Connection, connect
-
 from ..base_client import BaseElevenLabs
 from ..url_utils import build_ws_url
 from ..version import __version__
-
+from websockets.exceptions import ConnectionClosedOK
+from websockets.sync.client import Connection, connect
 
 logger = logging.getLogger(__name__)
 

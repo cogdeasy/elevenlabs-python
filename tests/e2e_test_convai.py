@@ -1,10 +1,11 @@
+import asyncio
 import os
 import time
-import asyncio
 
 import pytest
+
 from elevenlabs import ElevenLabs
-from elevenlabs.conversational_ai.conversation import Conversation, ClientTools
+from elevenlabs.conversational_ai.conversation import ClientTools, Conversation
 from elevenlabs.conversational_ai.default_audio_interface import DefaultAudioInterface
 
 

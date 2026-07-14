@@ -8,7 +8,6 @@ import pytest
 
 from elevenlabs.speech_engine import SpeechEngineResource, SpeechEngineSession
 
-
 # ---------------------------------------------------------------------------
 # MockWebSocket (same as session tests)
 # ---------------------------------------------------------------------------

@@ -1,11 +1,11 @@
 import asyncio
-
-from elevenlabs import VoiceSettings, Voice
-from elevenlabs.play import play
-from elevenlabs.client import AsyncElevenLabs, ElevenLabs
-
-from .utils import IN_GITHUB, DEFAULT_TEXT, DEFAULT_VOICE, DEFAULT_MODEL
 import base64
+
+from .utils import DEFAULT_MODEL, DEFAULT_TEXT, DEFAULT_VOICE, IN_GITHUB
+
+from elevenlabs import VoiceSettings
+from elevenlabs.client import AsyncElevenLabs, ElevenLabs
+from elevenlabs.play import play
 
 
 def test_tts_convert() -> None:

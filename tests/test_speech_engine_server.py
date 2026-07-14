@@ -9,7 +9,6 @@ import websockets
 
 from elevenlabs.speech_engine import SpeechEngineServer
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------

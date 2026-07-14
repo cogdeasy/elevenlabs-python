@@ -64,6 +64,13 @@ class RealtimeConnection:
         self.ffmpeg_process = ffmpeg_process
         self._event_handlers: typing.Dict[str, typing.List[typing.Callable]] = {}
         self._message_task: typing.Optional[asyncio.Task] = None
+        self._callback_tasks: typing.Set[asyncio.Task] = set()
+
+    async def __aenter__(self) -> "RealtimeConnection":
+        return self
+
+    async def __aexit__(self, exc_type: typing.Any, exc: typing.Any, tb: typing.Any) -> None:
+        await self.close()
 
     def on(self, event: str, callback: typing.Callable) -> None:
         """
@@ -85,14 +92,73 @@ class RealtimeConnection:
             self._event_handlers[event] = []
         self._event_handlers[event].append(callback)
 
+    def off(self, event: str, callback: typing.Optional[typing.Callable] = None) -> None:
+        """
+        Remove an event handler previously registered with :meth:`on`.
+
+        Args:
+            event: The event type the handler was registered for
+            callback: The handler to remove. If ``None``, all handlers for
+                the event are removed.
+        """
+        if event not in self._event_handlers:
+            return
+        if callback is None:
+            del self._event_handlers[event]
+            return
+        handlers = self._event_handlers[event]
+        if callback in handlers:
+            handlers.remove(callback)
+        if not handlers:
+            del self._event_handlers[event]
+
+    async def wait_for(self, event: str, timeout: typing.Optional[float] = None) -> typing.Any:
+        """
+        Wait until *event* is emitted and return its payload.
+
+        Args:
+            event: The event type to wait for (from RealtimeEvents enum)
+            timeout: Maximum seconds to wait; ``None`` waits indefinitely
+
+        Raises:
+            asyncio.TimeoutError: If the event is not emitted within *timeout*
+
+        Example:
+            ```python
+            await connection.commit()
+            data = await connection.wait_for(RealtimeEvents.COMMITTED_TRANSCRIPT, timeout=10)
+            print(data["transcript"])
+            ```
+        """
+        future: "asyncio.Future[typing.Any]" = asyncio.get_running_loop().create_future()
+
+        def _resolver(*args: typing.Any) -> None:
+            if not future.done():
+                future.set_result(args[0] if len(args) == 1 else args)
+
+        self.on(event, _resolver)
+        try:
+            return await asyncio.wait_for(future, timeout)
+        finally:
+            self.off(event, _resolver)
+
     def _emit(self, event: str, *args) -> None:
         """Emit an event to all registered handlers"""
         if event in self._event_handlers:
-            for handler in self._event_handlers[event]:
+            for handler in list(self._event_handlers[event]):
                 try:
-                    handler(*args)
+                    result = handler(*args)
+                    if asyncio.iscoroutine(result):
+                        task = asyncio.get_running_loop().create_task(result)
+                        self._callback_tasks.add(task)
+                        task.add_done_callback(self._on_callback_task_done)
                 except Exception as e:
                     print(f"Error in event handler for {event}: {e}")
+
+    def _on_callback_task_done(self, task: asyncio.Task) -> None:
+        self._callback_tasks.discard(task)
+        if not task.cancelled() and task.exception() is not None:
+            print(f"Error in async event handler: {task.exception()}")
 
     async def _start_message_handler(self) -> None:
         """Start handling incoming WebSocket messages"""
@@ -226,14 +292,16 @@ class RealtimeConnection:
             ```
         """
         await self._cleanup()
-        if self.websocket:
-            await self.websocket.close(1000, "User ended conversation")
-        if self._message_task and not self._message_task.done():
-            self._message_task.cancel()
-            try:
-                await self._message_task
-            except asyncio.CancelledError:
-                pass
+        try:
+            if self.websocket:
+                await self.websocket.close(1000, "User ended conversation")
+        finally:
+            if self._message_task and not self._message_task.done():
+                self._message_task.cancel()
+                try:
+                    await self._message_task
+                except asyncio.CancelledError:
+                    pass
 
     async def _cleanup(self) -> None:
         """Clean up resources like ffmpeg processes"""

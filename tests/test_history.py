@@ -1,4 +1,4 @@
-from elevenlabs import GetSpeechHistoryResponse, ElevenLabs
+from elevenlabs import ElevenLabs, GetSpeechHistoryResponse
 
 
 def test_history():

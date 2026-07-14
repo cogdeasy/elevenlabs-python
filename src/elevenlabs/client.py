@@ -2,7 +2,6 @@ import os
 import typing
 
 import httpx
-
 from .base_client import AsyncBaseElevenLabs, BaseElevenLabs
 from .environment import ElevenLabsEnvironment
 from .music_custom import AsyncMusicClient, MusicClient
@@ -10,7 +9,6 @@ from .realtime_tts import RealtimeTextToSpeechClient
 from .speech_engine_custom import AsyncSpeechEngineClient, SpeechEngineClient
 from .speech_to_text_custom import AsyncSpeechToTextClient, SpeechToTextClient
 from .webhooks_custom import AsyncWebhooksClient, WebhooksClient
-
 
 # this is used as the default value for optional parameters
 OMIT = typing.cast(typing.Any, ...)
