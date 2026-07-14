@@ -4,8 +4,14 @@ import subprocess
 import typing
 from enum import Enum
 
+from .events import CommittedTranscriptEvent, RealtimeEventPayload
+
 if typing.TYPE_CHECKING:
     from websockets.asyncio.client import ClientConnection
+
+
+def _event_key(event: str) -> str:
+    return event.value if isinstance(event, Enum) else str(event)
 
 
 class RealtimeEvents(str, Enum):
@@ -65,6 +71,8 @@ class RealtimeConnection:
         self._event_handlers: typing.Dict[str, typing.List[typing.Callable]] = {}
         self._message_task: typing.Optional[asyncio.Task] = None
         self._callback_tasks: typing.Set[asyncio.Task] = set()
+        self._event_queues: typing.List["asyncio.Queue[typing.Tuple[str, typing.Any]]"] = []
+        self._close_emitted = False
 
     async def __aenter__(self) -> "RealtimeConnection":
         return self
@@ -144,6 +152,10 @@ class RealtimeConnection:
 
     def _emit(self, event: str, *args) -> None:
         """Emit an event to all registered handlers"""
+        if _event_key(event) == RealtimeEvents.CLOSE.value:
+            self._close_emitted = True
+        for queue in list(self._event_queues):
+            queue.put_nowait((event, args[0] if args else None))
         if event in self._event_handlers:
             for handler in list(self._event_handlers[event]):
                 try:
@@ -159,6 +171,68 @@ class RealtimeConnection:
         self._callback_tasks.discard(task)
         if not task.cancelled() and task.exception() is not None:
             print(f"Error in async event handler: {task.exception()}")
+
+    async def events(
+        self, events: typing.Optional[typing.Iterable[str]] = None
+    ) -> typing.AsyncIterator[typing.Tuple[str, RealtimeEventPayload]]:
+        """
+        Iterate over events emitted by the connection as ``(event, payload)`` tuples.
+
+        Iteration ends when the connection closes.
+
+        Args:
+            events: Optional collection of event types to yield. When ``None``,
+                every event (except CLOSE) is yielded.
+
+        Example:
+            ```python
+            async for event, payload in connection.events():
+                if event == RealtimeEvents.PARTIAL_TRANSCRIPT:
+                    print(payload["transcript"])
+            ```
+        """
+        wanted = {_event_key(e) for e in events} if events is not None else None
+        if self._close_emitted:
+            return
+        queue: "asyncio.Queue[typing.Tuple[str, typing.Any]]" = asyncio.Queue()
+        self._event_queues.append(queue)
+        try:
+            while True:
+                event, payload = await queue.get()
+                if _event_key(event) == RealtimeEvents.CLOSE.value:
+                    return
+                if wanted is None or _event_key(event) in wanted:
+                    yield event, payload
+        finally:
+            self._event_queues.remove(queue)
+
+    async def transcripts(
+        self, include_partial: bool = False
+    ) -> typing.AsyncIterator[CommittedTranscriptEvent]:
+        """
+        Iterate over transcript payloads until the connection closes.
+
+        Args:
+            include_partial: When ``True``, partial transcripts are yielded in
+                addition to committed ones.
+
+        Example:
+            ```python
+            async for transcript in connection.transcripts():
+                print(transcript["transcript"])
+            ```
+        """
+        wanted: typing.List[str] = [
+            RealtimeEvents.COMMITTED_TRANSCRIPT,
+            RealtimeEvents.COMMITTED_TRANSCRIPT_WITH_TIMESTAMPS,
+        ]
+        if include_partial:
+            wanted.append(RealtimeEvents.PARTIAL_TRANSCRIPT)
+        async for _, payload in self.events(wanted):
+            yield typing.cast(CommittedTranscriptEvent, payload)
+
+    def __aiter__(self) -> typing.AsyncIterator[typing.Tuple[str, RealtimeEventPayload]]:
+        return self.events()
 
     async def _start_message_handler(self) -> None:
         """Start handling incoming WebSocket messages"""

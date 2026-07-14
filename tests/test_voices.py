@@ -1,6 +1,9 @@
+import pytest
 from .utils import DEFAULT_VOICE
 
 from elevenlabs import ElevenLabs, Voice, VoiceSettings
+
+pytestmark = pytest.mark.live_api
 
 
 def test_get_voice():

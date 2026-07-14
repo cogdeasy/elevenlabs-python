@@ -1,11 +1,14 @@
 import asyncio
 import base64
 
+import pytest
 from .utils import DEFAULT_MODEL, DEFAULT_TEXT, DEFAULT_VOICE, IN_GITHUB
 
 from elevenlabs import VoiceSettings
 from elevenlabs.client import AsyncElevenLabs, ElevenLabs
 from elevenlabs.play import play
+
+pytestmark = pytest.mark.live_api
 
 
 def test_tts_convert() -> None:

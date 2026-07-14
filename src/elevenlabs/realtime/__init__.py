@@ -6,6 +6,16 @@ speech-to-text API and receiving real-time transcription results.
 """
 
 from .connection import RealtimeConnection, RealtimeEvents
+from .events import (
+    CommittedTranscriptEvent,
+    CommittedTranscriptWithTimestampsEvent,
+    PartialTranscriptEvent,
+    RealtimeErrorEvent,
+    RealtimeEventPayload,
+    SessionStartedEvent,
+    TranscriptWord,
+)
+from .reconnect import ExponentialBackoff, connect_with_backoff
 from .scribe import AudioFormat, CommitStrategy, RealtimeAudioOptions, RealtimeUrlOptions, ScribeRealtime
 
 __all__ = [
@@ -16,5 +26,14 @@ __all__ = [
     "CommitStrategy",
     "RealtimeAudioOptions",
     "RealtimeUrlOptions",
+    "SessionStartedEvent",
+    "PartialTranscriptEvent",
+    "CommittedTranscriptEvent",
+    "CommittedTranscriptWithTimestampsEvent",
+    "TranscriptWord",
+    "RealtimeErrorEvent",
+    "RealtimeEventPayload",
+    "ExponentialBackoff",
+    "connect_with_backoff",
 ]
 

@@ -8,6 +8,8 @@ from elevenlabs import ElevenLabs
 from elevenlabs.conversational_ai.conversation import ClientTools, Conversation
 from elevenlabs.conversational_ai.default_audio_interface import DefaultAudioInterface
 
+pytestmark = pytest.mark.live_api
+
 
 @pytest.mark.skipif(os.getenv("CI") == "true", reason="Skip live conversation test in CI environment")
 def test_live_conversation():
