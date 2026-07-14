@@ -292,14 +292,16 @@ class RealtimeConnection:
             ```
         """
         await self._cleanup()
-        if self.websocket:
-            await self.websocket.close(1000, "User ended conversation")
-        if self._message_task and not self._message_task.done():
-            self._message_task.cancel()
-            try:
-                await self._message_task
-            except asyncio.CancelledError:
-                pass
+        try:
+            if self.websocket:
+                await self.websocket.close(1000, "User ended conversation")
+        finally:
+            if self._message_task and not self._message_task.done():
+                self._message_task.cancel()
+                try:
+                    await self._message_task
+                except asyncio.CancelledError:
+                    pass
 
     async def _cleanup(self) -> None:
         """Clean up resources like ffmpeg processes"""
