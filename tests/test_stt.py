@@ -3,6 +3,8 @@ from .utils import DEFAULT_VOICE_FILE
 
 from elevenlabs.client import ElevenLabs
 
+pytestmark = pytest.mark.live_api
+
 DEFAULT_EXT_AUDIO = "https://storage.googleapis.com/eleven-public-cdn/audio/marketing/nicole.mp3"
 
 

@@ -80,6 +80,11 @@ jobs:
         run: poetry run pytest . --cov=src/elevenlabs --cov-report=term --cov-report=xml
         env:
           ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
+      # Coverage gate scoped to the hand-maintained paths listed in .fernignore;
+      # Fern-generated code is reported above but not gated.
+      - name: Enforce coverage threshold (hand-maintained code)
+        run: |
+          poetry run coverage report --fail-under=65 --include="src/elevenlabs/client.py,src/elevenlabs/conversational_ai/conversation.py,src/elevenlabs/conversational_ai/default_audio_interface.py,src/elevenlabs/realtime_tts.py,src/elevenlabs/play.py,src/elevenlabs/webhooks_custom.py,src/elevenlabs/music_custom.py,src/elevenlabs/speech_to_text_custom.py,src/elevenlabs/url_utils.py,src/elevenlabs/realtime/*,src/elevenlabs/speech_engine/*,src/elevenlabs/speech_engine_custom.py"
       - name: Upload coverage report
         uses: actions/upload-artifact@v4
         with:
@@ -106,6 +111,9 @@ jobs:
         run: poetry run python -m compileall -q examples
       - name: Import-check examples
         run: poetry run python examples/check_imports.py
+      # Runnable-smoke tier: executes examples end-to-end against a local mock API
+      - name: Run examples against local mock server
+        run: poetry run python examples/run_smoke.py
 
   publish:
     needs: [lint, compile, test, examples]

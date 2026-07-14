@@ -1,4 +1,8 @@
+import pytest
+
 from elevenlabs import ElevenLabs, GetSpeechHistoryResponse
+
+pytestmark = pytest.mark.live_api
 
 
 def test_history():

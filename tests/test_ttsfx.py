@@ -1,7 +1,10 @@
+import pytest
 from .utils import IN_GITHUB
 
 from elevenlabs.client import ElevenLabs
 from elevenlabs.play import play
+
+pytestmark = pytest.mark.live_api
 
 
 def test_text_to_sound_effects_convert() -> None:

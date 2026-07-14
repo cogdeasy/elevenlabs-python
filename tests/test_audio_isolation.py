@@ -1,7 +1,10 @@
+import pytest
 from .utils import DEFAULT_VOICE_FILE, IN_GITHUB
 
 from elevenlabs.client import ElevenLabs
 from elevenlabs.play import play
+
+pytestmark = pytest.mark.live_api
 
 
 def test_audio_isolation() -> None:

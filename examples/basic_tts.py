@@ -17,7 +17,10 @@ MODEL_ID = "eleven_multilingual_v2"
 def main() -> None:
     output_path = sys.argv[1] if len(sys.argv) > 1 else "output.mp3"
 
-    client = ElevenLabs(api_key=os.environ["ELEVENLABS_API_KEY"])
+    client = ElevenLabs(
+        api_key=os.environ["ELEVENLABS_API_KEY"],
+        base_url=os.environ.get("ELEVENLABS_BASE_URL"),
+    )
     audio = client.text_to_speech.convert(
         voice_id=VOICE_ID,
         model_id=MODEL_ID,

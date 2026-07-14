@@ -1,4 +1,8 @@
+import pytest
+
 from elevenlabs.client import ElevenLabs
+
+pytestmark = pytest.mark.live_api
 
 
 def test_voice_preview_generation():
